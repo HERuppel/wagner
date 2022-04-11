@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native'
+import { View, ActivityIndicator, Text, StyleSheet, Alert } from 'react-native'
 import { IClientOptions } from '@taoqf/react-native-mqtt';
-import { MqttProvider } from '../hooks/mqtt';
+import { MqttProps, MqttProvider } from '../hooks/mqtt';
 import { colors } from '../global/colors';
 import AppRoutes from './app.routes';
-import { WagnerProvider } from '../hooks/wagner';
+import { WagnerConfigs, WagnerProvider } from '../hooks/wagner';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mqttProps: { brokerUrl: string, options: IClientOptions } = {
   brokerUrl: 'ws://broker.hivemq.com:8000/mqtt',
@@ -30,14 +31,35 @@ const mqttProps: { brokerUrl: string, options: IClientOptions } = {
 
 const Routes = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true)
+  const [retrievedMqttProps, setRetrievedMqttProps] = useState<MqttProps>({} as MqttProps);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-  })
+    (async () => {
+      try {
+        const storedConfigs = await AsyncStorage.getItem('@Wagner:configs')
+  
+        if (storedConfigs) {
+          const configs: WagnerConfigs = JSON.parse(storedConfigs);
+  
+          if (configs.mqttProps) {
+            setRetrievedMqttProps(configs.mqttProps)
+            setLoading(false)
+          } else {
+            setRetrievedMqttProps(mqttProps)
+            setLoading(false)
+          }
+        }  else {
+          await AsyncStorage.setItem('@Wagner:configs', JSON.stringify({ mqttProps }))
+          setRetrievedMqttProps(mqttProps)
+          setLoading(false)
+        }
+      } catch (e) {
+        Alert.alert('Ops...', 'Ocorreu um erro durante o carregamento: ' + `${e}`)
+      }
+    })()
+  }, [])
 
-  if (loading) {
+  if (loading || !retrievedMqttProps) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Wagner</Text>
@@ -48,7 +70,7 @@ const Routes = (): JSX.Element => {
   }
 
   return (
-    <MqttProvider mqttProps={mqttProps}>
+    <MqttProvider mqttProps={retrievedMqttProps}>
       <WagnerProvider>
         <AppRoutes />
       </WagnerProvider>

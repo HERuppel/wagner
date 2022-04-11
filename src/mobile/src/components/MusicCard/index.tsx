@@ -15,7 +15,6 @@ const MusicCard = ({ name, author, length }: Song): JSX.Element => {
     if (playing) {
       interval = setInterval(() => {
         if (timer <= length) {
-          console.log('TIMER', timer, length)
           setTimer(timer + 1)
         } else {
           setPlaying(false)

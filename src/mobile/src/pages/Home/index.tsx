@@ -10,17 +10,19 @@ import { colors } from '../../global/colors';
 import MqttStatus from '../../components/MqttStatus';
 import Joypad from '../../components/Joypad';
 import { useMqtt } from '../../hooks/mqtt';
+import { useWagner } from '../../hooks/wagner';
 
 const Home = (): JSX.Element => {
   const navigation = useNavigation<NavigationProp<StackAppParams>>()
+  const { configs: { controlTopic, speedTopic } } = useWagner()
   const { publish } = useMqtt()
 
   const executeButtonAction = (action: string): void => {
-    publish('embarcados.controle.wagner.controle', action, { qos: 1 })
+    publish(controlTopic, action, { qos: 1 })
   }
 
   const setSliderValue = (value: number): void => {
-    publish('embarcados.controle.wagner.velocidade', `${Math.floor(value)}`, { qos: 1 })
+    publish(speedTopic, `${Math.floor(value)}`, { qos: 1 })
   }
 
   return (

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react'
 import mqtt, {
   IClientOptions,
   IClientPublishOptions,
@@ -10,6 +10,8 @@ import mqtt, {
 
 import { Buffer } from 'buffer'
 import { Alert } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useWagner, WagnerConfigs } from './wagner'
 global.Buffer = Buffer
 
 interface MqttContextData {
@@ -43,11 +45,13 @@ interface MqttContextData {
     topic_: string, payload: Buffer, packet: Packet
   ): void;
   configureBroker(
-    config: MqttProps
+    config: MqttProps,
+    callback: () => void
   ): void
   clientMqtt: MqttClient;
   payload: Buffer;
   status: boolean;
+  reconNumber: number;
 }
 
 export interface MqttProps {
@@ -63,11 +67,14 @@ interface MqttProviderProps {
 const MqttContext = createContext<MqttContextData>({} as MqttContextData)
 
 export const MqttProvider = ({ children, mqttProps }: MqttProviderProps): JSX.Element => {
+  const { configs } = useWagner();
   const [clientMqtt, setClientMqtt] = useState<MqttClient>(() =>
     mqtt.connect(mqttProps.brokerUrl, mqttProps.options)
   )
   const [payload, setPayload] = useState<Buffer>()
   const [status, setStatus] = useState<boolean>(false)
+  const [reconNumber, setReconNumber] = useState<number>(0)
+  const reconTries = useRef(0);
 
   useEffect(() => {
     clientMqtt.on('connect', (packet: Packet) => {
@@ -76,8 +83,17 @@ export const MqttProvider = ({ children, mqttProps }: MqttProviderProps): JSX.El
     })
 
     clientMqtt.on('reconnect', (a: any, b: any) => {
+      if (reconTries.current >= 5) {
+        reconTries.current = 0;
+        setReconNumber(0)
+        clientMqtt.end(true);
+        setStatus(false);
+        return
+      }
       setStatus(false)
-      console.log('Reconnecting', a, b)
+      setReconNumber(reconTries.current + 1);
+      reconTries.current = reconTries.current + 1;
+      console.log('Reconnecting', a, b);
     })
 
     clientMqtt.on('error', (err) => {
@@ -141,9 +157,12 @@ export const MqttProvider = ({ children, mqttProps }: MqttProviderProps): JSX.El
     setPayload(payload)
   }
 
-  const configureBroker = (config: MqttProps): void => {
+  const configureBroker = async (config: MqttProps, callback: () => void): Promise<void> => {
     clientMqtt.end(true)
     setClientMqtt(() => mqtt.connect(config.brokerUrl, config.options))
+    const newConfigs: WagnerConfigs = { ...configs, mqttProps: config }
+    await AsyncStorage.setItem('@Wagner:configs', JSON.stringify(newConfigs))
+    callback();
   }
 
   return (
@@ -156,7 +175,8 @@ export const MqttProvider = ({ children, mqttProps }: MqttProviderProps): JSX.El
         clientMqtt,
         configureBroker,
         payload: payload as Buffer,
-        status
+        status,
+        reconNumber
       }}
     >
       {children}

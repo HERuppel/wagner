@@ -1,0 +1,2 @@
+Mqtt        KEYWORD1
+connected   KEYWORD2
