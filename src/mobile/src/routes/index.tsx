@@ -8,11 +8,11 @@ import { WagnerConfigs, WagnerProvider } from '../hooks/wagner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mqttProps: { brokerUrl: string, options: IClientOptions } = {
-  brokerUrl: 'ws://broker.hivemq.com:8000/mqtt',
+  brokerUrl: 'ws://broker.mqtt-dashboard.com:8000/mqtt',
   options: {
     port: 8000,
     protocol: 'ws' as 'ws',
-    host: 'broker.hivemq.com',
+    host: 'broker.mqtt-dashboard.com',
     clientId: `Wagner-${Math.floor(Math.random() * 100)}`,
     keepalive: 60,
     protocolId: 'MQTT',

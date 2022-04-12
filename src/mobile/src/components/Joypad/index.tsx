@@ -49,7 +49,6 @@ const Joypad = ({ executeAction }: Joypad): JSX.Element => {
     <TouchableOpacity
       activeOpacity={.6}
       onPressIn={() => executeAction('<20#202>')}
-      onPressOut={() => buttonsOption ? executeAction('<20#202>') : undefined}
     >
       <MaterialIcons name='crop-square' size={110} style={{ paddingTop: 20 }} color={colors.aliceBlue} />
     </TouchableOpacity>
