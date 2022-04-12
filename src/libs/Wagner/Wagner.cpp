@@ -27,25 +27,25 @@ void Wagner::handleUARTByteReceived(byte uart_id, byte received) {
 		return;
 	}
 
-	static bool inProgress = false;
+	static bool in_progress[UART_METHODS_NUMBER] = {false,false};
+	static byte index[UART_METHODS_NUMBER] = {0,0};
 	static char received_chars[UART_METHODS_NUMBER][UART_PROTOCOL_STRING_LENGTH];
-	static byte index = 0;
 
-	if (inProgress) {
+	if (in_progress[uart_id]) {
 		if (received != UART_END_MARKER) {
-			received_chars[uart_id][index] = received;
-			if ((++index) >= UART_PROTOCOL_STRING_LENGTH) {
-				index = UART_PROTOCOL_STRING_LENGTH - 1;
+			received_chars[uart_id][index[uart_id]] = received;
+			if ((++index[uart_id]) >= UART_PROTOCOL_STRING_LENGTH) {
+				index[uart_id] = UART_PROTOCOL_STRING_LENGTH - 1;
 			}
 		} else {
-			received_chars[uart_id][index] = '\0';
-			inProgress = false;
-			index = 0;
+			received_chars[uart_id][index[uart_id]] = '\0';
+			in_progress[uart_id] = false;
+			index[uart_id] = 0;
 
 			this->handleProtocolStringChanged(received_chars[uart_id]);
 		}
 	} else if (received == UART_START_MARKER) {
-		inProgress = true;
+		in_progress[uart_id] = true;
 	}
 }
 
