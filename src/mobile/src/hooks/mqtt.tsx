@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react'
 import mqtt, {
+  ClientSubscribeCallback,
   IClientOptions,
   IClientPublishOptions,
   IClientSubscribeOptions,
@@ -29,12 +30,13 @@ interface MqttContextData {
   subscribe(
     topic: string | string[],
     opts: IClientSubscribeOptions,
-    callback?: (
-      topic_: string,
-      payload: Buffer,
-      packet: Packet,
-      error: Error
-    ) => void
+    callback?: ClientSubscribeCallback
+    // callback?: (
+    //   topic_: string,
+    //   payload: Buffer,
+    //   packet: Packet,
+    //   error: Error
+    // ) => void
   ): void;
   unsubscribe(
     topic_: string | string[],
@@ -149,8 +151,9 @@ export const MqttProvider = ({ children, mqttProps }: MqttProviderProps): JSX.El
   const subscribe = (
     topic: string | string[],
     opts: IClientSubscribeOptions,
+    callback?: ClientSubscribeCallback 
   ) => {
-    clientMqtt.subscribe(topic, { ...opts })
+    clientMqtt.subscribe(topic, { ...opts }, callback)
   }
 
   const onMessage = (topic_: string, payload: Buffer, packet: Packet): void => {

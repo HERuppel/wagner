@@ -4,6 +4,8 @@
 #include <Bluetooth.h>
 #include <WagFi.h>
 
+#include <PubSubClient.h>
+
 #define QNT_MOTORS 2
 
 #define ULTRASONIC_TRIGGER_PIN 4
@@ -17,11 +19,18 @@
 #define MOTOR_02_GND_PIN 12
 #define MOTOR_02_PWM_PIN 0
 
-#define BLUETOOTH_RX 4
-#define BLUETOOTH_TX 5
+#define BLUETOOTH_RX 3
+#define BLUETOOTH_TX 1
 
 #define WIFI_SSID "SSID_HERE"
 #define WIFI_PASSWORD "PASSWORD_HERE"
+
+
+/*
+	PROTOTYPES
+*/
+void conectaMQTT();
+void onMQTTMessageCallback(char*,byte*,unsigned int);
 
 
 /*
@@ -40,24 +49,38 @@ Wagner wagner = Wagner(
 	}
 );
 
+WiFiClient clienteWIFI;
+PubSubClient clienteMQTT(clienteWIFI);
+
 void setup() {
 	Serial.begin(9600);
 	randomSeed(analogRead(A0));
-	wagfi.connect();
+
+	clienteMQTT.setServer("broker.mqtt-dashboard.com", 1883);
+  clienteMQTT.setCallback(onMQTTMessageCallback);
 }
 
 void loop() {
 
-/*
-	float distance_in_cm = ultrasonic.getCurrentValue();
+  /*
+	long microsec = ultrasonic.timing();
+	float distance_in_cm = ultrasonic.convert(microsec, Ultrasonic::CM);
 
+		
 	Serial.print("LOG loop -> distance_in_cm == ");
 	Serial.print(distance_in_cm);
 	Serial.println("cm");
-*/
+  */
+		
 	if (!wagfi.connected()) {
 		wagfi.reconnect();
+	} else {
+		if (!clienteMQTT.connected()) {
+			conectaMQTT();
+		}
 	}
+
+	clienteMQTT.loop();
 
 	if (bluetooth.available()) {
 		wagner.handleUARTByteReceived(UART_BLUETOOTH_ID, bluetooth.getCurrentByte());
@@ -66,4 +89,26 @@ void loop() {
 	wagner.drive(100.0);
 
 	delay(50);
+}
+
+void onMQTTMessageCallback(char* topic, byte* payload, unsigned int size) {
+  Serial.print("[MSG RECEBIDA] Topico: ");
+  Serial.print(topic);
+  Serial.print(" / Mensagem: ");
+  for (int i = 0; i < size; i++) {
+    Serial.print((char)payload[i]);
+		wagner.handleUARTByteReceived(UART_MQTT_ID, payload[i]);
+  }
+  Serial.println();
+}
+
+void conectaMQTT() {
+	if (clienteMQTT.connect("clienteWIFI" +  random(300))) {
+		Serial.println("MQTT conectado");
+		clienteMQTT.subscribe("Sistemas.Embarcados.Wagner.Actions");
+    clienteMQTT.subscribe("Sistemas.Embarcados.Wagner.Speed");
+	} else {
+		Serial.print("Falha, rc=");
+		Serial.print(clienteMQTT.state());
+	}
 }

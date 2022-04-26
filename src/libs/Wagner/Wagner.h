@@ -20,6 +20,9 @@
 #define ACTION_WALK_FORWARD 1
 #define QNT_DEFAULT_ACTIONS 6
 
+#define MIN_SPEED_DELIMITER 500
+#define MAX_SPEED_DELIMITER 600
+
 #define CONST_MAX_SPEED_VALUE 1023
 #define CONST_CN_MAX_DISTANCE 15.0
 #define CONST_CN_BLOCKED_TIME_IN_MS 2000
@@ -29,6 +32,7 @@
 class Wagner {
 
 private:
+	byte speed;
 	int direction; 
 	Motor *motors;
 	unsigned int motors_length;
@@ -42,6 +46,7 @@ private:
 	void random_decision_side();
 	void write();
 	void setCurrentAction(Action*);
+	void setCurrentSpeed(byte);
 
 public:
 	Wagner(unsigned int,Motor*);

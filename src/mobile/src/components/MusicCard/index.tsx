@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './styles';
 import { Song } from '../../utils/playlist';
 
@@ -42,7 +42,8 @@ const MusicCard = ({ name, author, length }: Song): JSX.Element => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <View>
+        <Image source={require('../../assets/DJWagner.jpg')} style={{ height: 60, width: 60, resizeMode: 'contain' }} />
+        <View style={{ marginLeft: -50 }}>
           <Text style={styles.name}>{name}</Text>
           <Text style={styles.author}>{author}</Text>
         </View>

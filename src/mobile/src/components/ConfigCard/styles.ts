@@ -5,7 +5,7 @@ import { colors } from '../../global/colors';
 export const styles = StyleSheet.create({
   container: {
     width: Dimensions.get('window').width - 40,
-    height: 140,
+    height: 160,
     borderRadius: 10,
     margin: 20,
     padding: 20,

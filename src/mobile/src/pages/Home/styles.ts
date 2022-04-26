@@ -4,10 +4,11 @@ import { colors } from '../../global/colors';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.prussianBlue
+    backgroundColor: colors.prussianBlue,
+    position: 'relative'
   },
   header: {
-    flex: 1,
+    height: Dimensions.get('window').height / 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
@@ -15,13 +16,21 @@ export const styles = StyleSheet.create({
     borderBottomColor: '#000'
   },
   content: {
-    flex: 18,
+    height: Dimensions.get('window').height / 1.5,
+    minHeight: Dimensions.get('window').height / 1.5,
     alignItems: 'center',
-    justifyContent: 'flex-start'
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginTop: 30
   },
   slider: {
     width: Dimensions.get('window').width - 80,
-    height: 50,
-    flex: 0.3
+    marginTop: 10
+  },
+  bottom: {
+    position: 'absolute',
+    bottom: 20,
+    right: 0,
+    left: Dimensions.get('window').width / 2.9
   }
 })

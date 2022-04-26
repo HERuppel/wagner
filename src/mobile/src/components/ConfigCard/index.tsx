@@ -16,11 +16,13 @@ const ConfigCard = (): JSX.Element => {
 
   const onSubmit = (data: any): void => {
     configureBroker({
-      brokerUrl: data.host,
+      brokerUrl: `ws://${data.host}:${data.port}${data.path}`,
       options: {
         ...clientMqtt.options,
         port: Number(data.port),
-        host: data.host
+        host: data.host,
+        hostname: data.host,
+        path: data.path,
       }
     },
     () => setModalVisible(false));
@@ -49,7 +51,7 @@ const ConfigCard = (): JSX.Element => {
       <CustomModal
         onClose={() => setModalVisible(false)}
         visible={modalVisible}
-        height={Dimensions.get('window').height / 2.4}
+        height={Dimensions.get('window').height / 2}
       >
         <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
@@ -94,6 +96,24 @@ const ConfigCard = (): JSX.Element => {
                 name="port"
                 rules={{ required: true }}
               />
+              <Controller
+                control={control}
+                render={({field: { onChange, onBlur, value }}) => (
+                  <>
+                    <Text style={styles.label}>Path</Text>
+                    <TextInput
+                      style={styles.input}
+                      selectionColor={colors.carolinaBlue}
+                      underlineColorAndroid={colors.carolinaBlue}
+                      onBlur={onBlur}
+                      onChangeText={value => onChange(value)}
+                      value={`${value}`}
+                    />
+                  </>
+                )}
+                defaultValue={`${clientMqtt?.options?.path}`}
+                name="path"
+              />
               <ModalButtonsSection />
             </FormProvider>
           </View>
@@ -108,6 +128,7 @@ const ConfigCard = (): JSX.Element => {
       </TouchableOpacity>
       <Text style={styles.propsText} numberOfLines={1}>Host: {clientMqtt?.options?.host || 'Broker indisponível'}</Text>
       <Text style={styles.propsText}>Porta: {clientMqtt?.options?.port || 'Porta indisponível'}</Text>
+      <Text style={styles.propsText}>Path: {clientMqtt?.options?.path || 'Path indisponível'}</Text>
       <Text style={styles.propsText}>Protocolo: {clientMqtt?.options?.protocol || 'Protocolo indisponível'}</Text>
       <Text style={styles.propsText}>Cliente: {clientMqtt?.options?.clientId || 'Cliente indisponível'}</Text>
     </View>
